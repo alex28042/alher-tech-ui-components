@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { GlassCard } from './ui/GlassCard';
 import { GlassButton } from './ui/GlassButton';
 import { GlassInput } from './ui/GlassInput';
+import { GlassBadge } from './ui/GlassBadge';
 import { generateGlassComponent } from '../services/geminiService';
-import { Sparkles, Code2, Copy, Check, Terminal, Eye, Play, Loader2 } from 'lucide-react';
+import { Sparkles, Code2, Copy, Check, Eye, Loader2 } from 'lucide-react';
 import { GenerationStatus } from '../types';
 
 // ==========================================
@@ -33,7 +34,6 @@ const GlassButton = ({ children, className = '', variant = 'primary', size = 'md
     md: "h-10 px-6 text-sm",
     lg: "h-12 px-8 text-base"
   };
-  // Simple loader shim
   const loader = isLoading ? React.createElement('span', { className: "mr-2 h-4 w-4 animate-spin border-2 border-current border-t-transparent rounded-full" }) : null;
   
   return React.createElement('button', {
@@ -50,6 +50,22 @@ const GlassInput = ({ className = '', ...props }) => {
     className: \`flex h-11 w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2 text-sm text-white placeholder:text-neutral-500 backdrop-blur-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/20 focus-visible:border-white/20 focus-visible:bg-white/[0.05] disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200 \${className}\`,
     ...props
   });
+};
+`;
+
+const SHIM_GLASS_BADGE = `
+const GlassBadge = ({ children, variant = 'neutral', className = '' }) => {
+  const variants = {
+    success: "bg-green-400/10 text-green-400 border-green-400/20",
+    warning: "bg-yellow-400/10 text-yellow-400 border-yellow-400/20",
+    error: "bg-red-400/10 text-red-400 border-red-400/20",
+    info: "bg-blue-400/10 text-blue-400 border-blue-400/20",
+    neutral: "bg-white/[0.05] text-neutral-400 border-white/[0.05]",
+    outline: "bg-transparent text-neutral-400 border-white/[0.1]"
+  };
+  return React.createElement('span', {
+    className: \`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border \${variants[variant]} \${className}\`
+  }, children);
 };
 `;
 
@@ -91,16 +107,17 @@ export const Generator: React.FC = () => {
       // Prepare the code for the browser environment
       // 1. Remove imports (since we inject them)
       let cleanCode = generatedCode.replace(/import.*?from.*?;/g, '');
+      
       // 2. Handle Lucide Icons separately (map them from global object)
-      //    We need to find which icons are used.
-      //    Rough heuristic: remove 'export default' and just render the component
+      //    Use robust regex for multiline imports
       cleanCode = cleanCode.replace('export default', 'const GeneratedComponent =');
 
-      // 3. Helper to extract imports for Lucide mapping
-      const lucideImportsMatch = generatedCode.match(/import\s+{(.*?)}\s+from\s+['"]lucide-react['"]/);
+      const lucideImportsMatch = generatedCode.match(/import\s+\{([\s\S]*?)\}\s+from\s+['"]lucide-react['"]/);
       let lucideDestructuring = '';
       if (lucideImportsMatch) {
-          const icons = lucideImportsMatch[1].split(',').map(i => i.trim());
+          const iconString = lucideImportsMatch[1];
+          // Clean up whitespace/newlines and split
+          const icons = iconString.split(',').map(i => i.trim()).filter(i => i);
           lucideDestructuring = `const { ${icons.join(', ')} } = lucide;`;
       }
 
@@ -147,6 +164,7 @@ export const Generator: React.FC = () => {
               ${SHIM_GLASS_CARD}
               ${SHIM_GLASS_BUTTON}
               ${SHIM_GLASS_INPUT}
+              ${SHIM_GLASS_BADGE}
 
               // Inject User Code
               ${cleanCode}
@@ -177,7 +195,7 @@ export const Generator: React.FC = () => {
           Generador de Componentes
         </h2>
         <p className="text-neutral-400 max-w-lg mx-auto text-lg">
-          Describe tu interfaz y nuestra IA la construirá usando la biblioteca de componentes oficial.
+          Describe tu interfaz y nuestra IA la construirá usando la librería Alher Tech.
         </p>
       </div>
 

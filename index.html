@@ -1,9 +1,14 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="h-full bg-[#0a0a0a]">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#0a0a0a" />
     <title>Alher Tech UI</title>
+    
+    <!-- Fix 404 on favicon by using data URI -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💠</text></svg>" />
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script>
@@ -17,28 +22,25 @@
             colors: {
               background: '#0a0a0a',
               surface: '#171717',
-              primary: '#ffffff',
-              secondary: '#a3a3a3',
-              accent: '#3b82f6',
               glass: {
                 100: 'rgba(255, 255, 255, 0.03)',
                 200: 'rgba(255, 255, 255, 0.08)',
                 border: 'rgba(255, 255, 255, 0.08)',
-                highlight: 'rgba(255, 255, 255, 0.1)',
               }
-            },
-            backgroundImage: {
-              'subtle-glow': 'radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.15) 0%, transparent 50%)',
             }
           },
         },
       }
     </script>
     <style>
-      body {
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
         background-color: #0a0a0a;
         color: #ffffff;
         -webkit-font-smoothing: antialiased;
+        overscroll-behavior-y: none; /* Prevent iOS bounce */
       }
       /* Minimal Scrollbar */
       ::-webkit-scrollbar {
@@ -67,7 +69,7 @@
 }
 </script>
 </head>
-  <body>
-    <div id="root"></div>
+  <body class="h-full overflow-hidden">
+    <div id="root" class="h-full overflow-auto"></div>
   </body>
 </html>

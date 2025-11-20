@@ -9,8 +9,7 @@ import { GenerationStatus } from '../types';
 
 // ==========================================
 // COMPONENT SHIMS FOR PREVIEW
-// These strings are injected into the iframe to make the generated code work
-// without a bundler.
+// These strings are injected into the iframe
 // ==========================================
 const SHIM_GLASS_CARD = `
 const GlassCard = ({ children, className = '', hoverEffect = false, noPadding = false }) => {
@@ -81,7 +80,7 @@ export const Generator: React.FC = () => {
     if (!prompt.trim()) return;
     
     setStatus('loading');
-    setActiveTab('preview'); // Switch to preview on generate
+    setActiveTab('preview'); 
     
     try {
       const code = await generateGlassComponent(prompt);
@@ -98,27 +97,21 @@ export const Generator: React.FC = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // Effect to update the Iframe content when code changes or tab changes
   useEffect(() => {
     if (status === 'success' && generatedCode && iframeRef.current && activeTab === 'preview') {
       const doc = iframeRef.current.contentDocument;
       if (!doc) return;
 
-      // Prepare the code for the browser environment
-      // 1. Remove imports (since we inject them)
       let cleanCode = generatedCode.replace(/import.*?from.*?;/g, '');
-      
-      // 2. Handle Lucide Icons separately (map them from global object)
-      //    Use robust regex for multiline imports
       cleanCode = cleanCode.replace('export default', 'const GeneratedComponent =');
 
+      // Extract Lucide icon names
       const lucideImportsMatch = generatedCode.match(/import\s+\{([\s\S]*?)\}\s+from\s+['"]lucide-react['"]/);
       let lucideDestructuring = '';
       if (lucideImportsMatch) {
           const iconString = lucideImportsMatch[1];
-          // Clean up whitespace/newlines and split
           const icons = iconString.split(',').map(i => i.trim()).filter(i => i);
-          lucideDestructuring = `const { ${icons.join(', ')} } = lucide;`;
+          lucideDestructuring = `const { ${icons.join(', ')} } = window.LucideReact;`;
       }
 
       const htmlContent = `
@@ -127,11 +120,12 @@ export const Generator: React.FC = () => {
           <head>
             <script src="https://cdn.tailwindcss.com"></script>
             <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-            <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-            <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-            <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-            <script src="https://unpkg.com/lucide@latest"></script>
-            <script src="https://unpkg.com/lucide-react@latest/dist/lucide-react.min.js"></script>
+            
+            <!-- Preload critical modules -->
+            <link rel="modulepreload" href="https://esm.sh/react@18.2.0">
+            <link rel="modulepreload" href="https://esm.sh/react-dom@18.2.0/client">
+            <link rel="modulepreload" href="https://esm.sh/lucide-react@0.263.1">
+
             <script>
               tailwind.config = {
                 theme: {
@@ -145,33 +139,37 @@ export const Generator: React.FC = () => {
               }
             </script>
             <style>
-              body { background-color: transparent; color: white; font-family: 'Outfit', sans-serif; overflow-x: hidden; }
-              /* Scrollbar */
+              body { background-color: transparent; color: white; font-family: 'Outfit', sans-serif; overflow-x: hidden; padding: 1rem; }
               ::-webkit-scrollbar { width: 6px; }
               ::-webkit-scrollbar-track { background: transparent; }
               ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
             </style>
           </head>
           <body>
-            <div id="root" class="p-4"></div>
-            <script type="text/babel">
-              const { useState, useEffect, useRef } = React;
-              
-              // Inject Lucide Icons
-              ${lucideDestructuring}
+            <div id="root"></div>
+            
+            <script type="module">
+              import React from "https://esm.sh/react@18.2.0";
+              import { createRoot } from "https://esm.sh/react-dom@18.2.0/client";
+              import * as LucideReact from "https://esm.sh/lucide-react@0.263.1";
 
-              // Inject UI Library
+              // Make available globally for shims
+              window.React = React;
+              window.LucideReact = LucideReact;
+
+              // Component Shims
               ${SHIM_GLASS_CARD}
               ${SHIM_GLASS_BUTTON}
               ${SHIM_GLASS_INPUT}
               ${SHIM_GLASS_BADGE}
 
-              // Inject User Code
+              // User Code
+              ${lucideDestructuring}
               ${cleanCode}
 
               // Render
-              const root = ReactDOM.createRoot(document.getElementById('root'));
-              root.render(<GeneratedComponent />);
+              const root = createRoot(document.getElementById('root'));
+              root.render(React.createElement(GeneratedComponent));
             </script>
           </body>
         </html>
@@ -265,7 +263,7 @@ export const Generator: React.FC = () => {
                   ref={iframeRef}
                   title="Preview"
                   className="w-full h-full min-h-[500px] border-none"
-                  sandbox="allow-scripts allow-same-origin"
+                  sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
                 />
               </div>
             ) : (

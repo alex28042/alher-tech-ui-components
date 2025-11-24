@@ -16,7 +16,8 @@ export interface GeneratedComponent {
 
 export enum TabState {
   PREVIEW = 'preview',
-  CODE = 'code'
+  CODE = 'code',
+  PROMPT = 'prompt'
 }
 
 export type GenerationStatus = 'idle' | 'loading' | 'success' | 'error';

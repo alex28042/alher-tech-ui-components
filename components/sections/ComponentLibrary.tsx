@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Lock, Activity, Laptop, Users, Settings, SearchX } from 'lucide-react';
+import { Lock, Activity, Laptop, Users, Settings, SearchX, MessageSquare } from 'lucide-react';
 import { ComponentShowcase } from '../ComponentShowcase';
 import { LIBRARY_CONTENT } from '../../data/examples';
 
@@ -16,6 +16,7 @@ export const ComponentLibrary: React.FC<ComponentLibraryProps> = ({ searchTerm =
     { id: 'complex', label: 'Complex Layouts', icon: Laptop },
     { id: 'crm', label: 'Data Management', icon: Users },
     { id: 'utility', label: 'Utility & Settings', icon: Settings },
+    { id: 'feedback', label: 'Toasts & Feedback', icon: MessageSquare },
   ];
 
   // Filter content based on search term
@@ -148,6 +149,7 @@ export const ComponentLibrary: React.FC<ComponentLibraryProps> = ({ searchTerm =
                           description={item.description}
                           component={item.component}
                           codeSnippet={item.code}
+                          prompt={item.prompt}
                       />
                     </div>
                   ))}
